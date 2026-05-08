@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+    .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: auto; }
+    h2 { color: #d32f2f; text-align: center; margin-top: 0; }
+    label { font-weight: bold; display: block; margin-top: 15px; font-size: 0.9em; color: #555; }
+    input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+    button { background: #d32f2f; color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>Bhajan Inputter</h2>
+  <label>Ketik Kategori (Misal: Ganesha):</label>
+  <input type="text" id="kategori">
+  <label>Judul Lagu:</label>
+  <input type="text" id="judul">
+  <label>Lirik & Arti (Selang-seling baris):</label>
+  <textarea id="lirikArti" rows="6"></textarea>
+  <label>Arti Filosofi:</label>
+  <textarea id="filosofi" rows="4"></textarea>
+  <label>Glosarium (kata: arti;):</label>
+  <textarea id="glosarium" rows="3"></textarea>
+  <label>ID MP3 Google Drive:</label>
+  <input type="text" id="idMp3">
+  <button onclick="proses()" id="btn">SIMPAN KE DATABASE</button>
+</div>
+<script>
+  function proses() {
+    const btn = document.getElementById('btn');
+    btn.disabled = true; btn.innerHTML = "Menyimpan...";
+    var data = {
+      kategori: document.getElementById('kategori').value,
+      judul: document.getElementById('judul').value,
+      lirikArti: document.getElementById('lirikArti').value,
+      filosofi: document.getElementById('filosofi').value,
+      glosarium: document.getElementById('glosarium').value,
+      idMp3: document.getElementById('idMp3').value
+    };
+    google.script.run.withSuccessHandler(function(res) {
+      alert(res);
+      document.getElementById('judul').value = "";
+      document.getElementById('lirikArti').value = "";
+      document.getElementById('filosofi').value = "";
+      document.getElementById('glosarium').value = "";
+      document.getElementById('idMp3').value = "";
+      btn.disabled = false; btn.innerHTML = "SIMPAN KE DATABASE";
+    }).kirimKeSheet(data);
+  }
+</script>
+</body>
+</html>
