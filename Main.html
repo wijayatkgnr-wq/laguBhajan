@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Taruh CSS Spinner di paling atas agar browser tahu cara menggambarnya segera */
+    #loading-global {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #fff8e1; z-index: 10000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .spinner-container { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
+    .spinner-ring {
+      position: absolute; width: 80px; height: 80px; border: 4px solid rgba(230, 81, 0, 0.1);
+      border-radius: 50%; border-left-color: #e65100;
+      animation: spin 1s linear infinite;
+    }
+.spinner-text { 
+  font-family: serif; 
+  font-weight: bold; 
+  color: #e65100; 
+  font-size: 14px; 
+  text-align: center; /* Mengetengahkan teks */
+}
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+
+
+<style>
+
+/* Kelas untuk mengunci scroll latar belakang */
+.stop-scroll {
+  overflow: hidden !important;
+  height: 100vh;
+}
+
+/* Pastikan modal-content bisa scroll jika isinya panjang (misal kena keyboard) */
+.modal-content {
+  max-height: 90vh; /* Agar tidak melebihi tinggi layar */
+  overflow-y: auto; /* Aktifkan scroll di dalam form */
+}  
+
+/* Membuat navigasi latihan menempel di atas saat scroll */
+.nav-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #fff8e1;
+  padding: 5px 15px !important; /* Perkecil padding atas-bawah jadi 5px saja */
+  z-index: 9999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-width: 650px;
+  margin: auto;
+  height: 50px !important; /* Paksa tinggi header jadi kecil (50px) */
+}
+
+
+.header-sticky {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  border-radius: 20px !important; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Bayangan nuansa orange */
+  margin: 0 !important;
+}
+
+/* Memastikan tidak ada jarak antar kotak di dalam bingkai */
+.box, .dropdown-kat {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Warna teks orange untuk judul pancingan (opsional) */
+.orange {
+  color: #E67E22 !important;
+}
+
+
+#footer-bersama {
+  margin-top: 40px;
+  border-top: 1px solid rgba(0,0,0,0.05); /* Garis halus pemisah */
+}
+
+  #view-daftar, #view-latihan, #view-detail {
+  min-height: 100vh; /* Memastikan setiap halaman punya ruang scroll */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Biar scroll di HP mulus */
+}
+
+.judul-teks {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+  text-align: left;
+}
+
+  body { font-family: 'Segoe UI', sans-serif; padding: 15px; background: #fff8e1; color: #444; margin: auto; max-width: 650px; }
+  .orange { color: #e65100; text-align: center; }
+  .box { width: 100%; padding: 12px; border: 2px solid #ff9800; border-radius: 25px; box-sizing: border-box; margin-bottom: 10px; outline: none; }
+  .dropdown-kat { width: 100%; padding: 10px; border: 1px solid #ff9800; border-radius: 8px; background: white; color: #e65100; font-weight: bold; margin-bottom: 20px; }
+  .card { background: white; padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 5px solid #ff9800; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.kat-badge {
+  font-size: 0.65em; /* Ukuran font sedikit dikecilkan agar elegan */
+  background: #ffe0b2;
+  color: #e65100;
+  border-radius: 6px;
+  font-weight: bold;
+
+  /* --- KUNCI TENGAH & UKURAN SAMA --- */
+  display: inline-flex;
+  align-items: center;     /* Tengah secara vertikal */
+  justify-content: center;  /* Tengah secara horizontal */
+  
+  width: 55px;             /* Paksa lebar tetap (bukan min-width agar pasti sama) */
+  height: 22px;            /* Paksa tinggi tetap agar seragam */
+  
+  flex-shrink: 0;          /* Mencegah badge gepeng */
+  margin-left: 10px;
+  text-transform: uppercase;
+}
+
+  .nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
+  .btn-back { background: #ff9800; color: white; padding: 8px 18px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; font-size: 0.85em; }
+  .btn-seva { background: #2e7d32; color: white; padding: 8px 18px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; font-size: 0.85em; }
+  .lirik-box { background: #fffafa; padding: 20px; border-radius: 8px; border: 1px solid #ffebee; text-align: center; margin: 15px 0; }
+  .audio-box { width: 100%; height: 60px; border: none; border-radius: 8px; background: #eee; margin: 10px 0; }
+  .filosofi { background: #fffde7; padding: 15px; border: 1px dashed #ffb74d; border-radius: 8px; white-space: pre-wrap; font-size: 0.95em; text-align: justify; }
+  
+  /* DESIGN LEAD SINGER */
+  .singer-item { background: #ffffff; margin-bottom: 12px; padding: 15px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: left; }
+  .singer-row { display: flex; gap: 12px; align-items: flex-start; }
+  .singer-numb { font-size: 18px; font-weight: bold; color: #000; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; border: 1px solid #ddd; }
+  .numb-circle { background: #FFBF00; border: none; }
+  .singer-info { flex: 1; }
+  .singer-name { display: block; font-size: 16px; font-weight: bold; color: #000; margin-bottom: 4px; }
+  .song-title-row { display: flex; gap: 6px; font-size: 14px; color: #000; font-weight: 500; margin-bottom: 10px; }
+  .btn-song-latih { display: inline-block; padding: 8px 18px; background: linear-gradient(135deg, #f39c12, #e67e22); color: white !important; text-decoration: none; font-size: 12px; font-weight: bold; border-radius: 20px; border: none; cursor: pointer; }
+  .btn-empty { display: inline-block; padding: 8px 18px; background: #f8f8f8; color: #ccc; font-size: 11px; font-weight: bold; border-radius: 20px; border: 1px dashed #ddd; }
+
+  .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
+  .modal-content { background: white; margin: 15% auto; padding: 20px; border-radius: 15px; width: 85%; max-width: 380px; position: relative; text-align: center; }
+  .grid-no { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+  .no-btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+  .slot-full { background: #ccc; color: #777; cursor: not-allowed; }
+  .slot-ada { background: #2e7d32; color: white; }
+
+/* Efek saat tombol ditekan (Semua Tombol) */
+button:active, .card:active {
+  transform: scale(0.96); /* Efek sedikit mengecil/mendalam */
+  filter: brightness(0.9); /* Warnanya agak sedikit gelap */
+  transition: 0.1s;
+}
+
+/* Khusus tombol Seva agar warnanya lebih tegas perubahannya */
+.btn-seva:active {
+  background-color: #1b5e20 !important;
+}
+
+/* Khusus tombol Latih agar warnanya lebih tegas */
+.btn-song-latih:active {
+  background: linear-gradient(135deg, #d35400, #bf360c) !important;
+}
+
+
+/* Efek visual saat jempol menyentuh tombol apa pun */
+button:active, .card:active, .no-btn:active {
+  transform: scale(0.95); /* Efek membal ke dalam */
+  filter: brightness(0.8); /* Warna jadi lebih gelap */
+  transition: 0.1s;
+}
+
+
+#list-container {
+  margin-top: 105px !important;
+}
+
+#arahanHarian {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+
+
+/* KHUSUS DAFTAR LAGU: Tetap mepet sesuai settingan sekarang */
+/* KHUSUS DAFTAR LAGU: Kunci jaraknya di sini */
+#view-daftar #list-container {
+  margin-top: 110px !important; /* Jarak pas untuk header fixed daftar */
+}
+
+/* HALAMAN LAIN: Kembalikan ke jarak normal (jarak-atas) */
+#view-latihan .jarak-atas, 
+#view-detail .jarak-atas, 
+#view-setting .jarak-atas {
+  margin-top: 55px !important; /* Jarak standar di bawah header */
+  height: 1px;
+}
+
+
+/* Reset margin konten agar tidak mendorong header */
+#view-detail h2, #arahanHarian {
+  margin-top: 0 !important;
+  padding-top: 5px !important;
+}
+
+
+  #view-logbhajan { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff5e6; z-index: 99999; overflow-y: auto; }
+  .card-log { background: #fff; min-height: 100vh; border-top: 6px solid #ff8c00; box-sizing: border-box; }
+  .header-log { background: #fff9f2; padding: 15px; border-bottom: 2px solid #ffdfba; text-align: center; position: sticky; top: 0; z-index: 10; }
+  .btn-back-log { background: #FFA500; color: #fff; border: none; padding: 5px 5px; border-radius: 6px; float: left; cursor: pointer; font-size: 8px !important; }
+  .table-log { width: 100%; border-collapse: collapse; background: white; }
+  .table-log th { background: #ff8c00; color: #fff; padding: 12px 8px; font-size: 11px; text-align: left; }
+  .table-log td { padding: 14px 8px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .badge-v { background: #fff3e0; border: 1px solid #ffcc80; padding: 4px 8px; border-radius: 6px; color: #e65100; font-size: 11px; display: inline-block; }
+
+
+
+
+
+
+</style>
+</head>
+<body>
+
+<!-- TARUH DISINI, DI ATAS SEMUA VIEW -->
+<div id="loading-global">
+  <div class="spinner-container">
+    <div class="spinner-ring"></div>
+    <div class="spinner-text">Om<br>Sai Ram</div>
+  </div>
+  <div style="text-align:center; color:Black; font-style:italic; font-size:14px; margin-top:10px;">
+    Love All Serve All<br>Help Ever, Hurt Never
+  </div>
+</div>
+
+
+
+
+
+<div id="view-daftar">
+  <!-- Header Fixed -->
+  <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #fff8e1; max-width: 650px; margin: auto; padding: 15px 15px 0px 15px;">
+    <div class="header-sticky" style="background: #FFA500 !important; padding: 10px 12px !important; border-radius: 20px !important; border: 1px solid #BBDEFB !important; margin: 0 !important;">
+      <div style="display: flex; gap: 5px; margin-bottom: 4px !important;">
+        <select id="selKat" class="dropdown-kat" onchange="filterLagu()" style="flex: 1; padding: 0 10px; border-radius: 10px; border: 1px solid #BBDEFB; background: #ffffff; font-size: 13px; outline: none; height: 38px; margin: 0 !important;">
+          <option value="SEMUA">-- Semua Kategori Lagu Bhajan --</option>
+        </select>
+        <button class="btn-back" style="background:#FFD8B1; border-radius: 10px; padding: 0 12px; color: #000000; border: none; font-size: 13px; white-space: nowrap; height: 38px; cursor: pointer; font-weight: bold;" onclick="bukaHalamanLatihan()">🎶 Latihan</button>
+      </div>
+      <div style="position: relative; display: flex; align-items: center;">
+        <input type="text" id="pencarian" class="box" placeholder="Ketik judul lagunya di sini" oninput="filterLagu()" style="width: 100%; padding: 10px 90px 10px 15px; border-radius: 10px; border: 1px solid #FFD8A8; background: #ffffff; outline: none; font-size: 15px; box-sizing: border-box; height: 40px; margin: 0 !important;">
+        <span id="hitung-lagu" style="position: absolute; right: 45px; color: #ff922b; font-weight: bold; pointer-events: none; font-size: 14px;"> 0 ♬ </span>
+        <button id="btn-bersih-cari" onclick="hapusCari()" style="position: absolute; right: 10px; background: #ff5252; color: #ffffff; border: none; width: 20px; height: 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 5;">✕</button>
+      </div>
+    </div>
+  </div>
+  <!-- Jarak khusus Daftar Lagu (105px) -->
+  <div id="list-container" style="padding: 5px; margin-top: 105px;"></div>
+</div>
+
+
+
+<div id="view-detail" style="display:none; padding: 0 15px;">
+  <!-- Jarak khusus Detail (Dibuat 45px agar naik) -->
+  <div class="jarak-atas" style="margin-top: 0px !important; height: 1px;"></div>
+  
+  <h2 id="det-judul" class="orange" style="border-bottom: 2px solid #ff9800; padding-bottom:10px; margin-top: 0 !important;"></h2>
+  <div id="det-player"></div>
+  <div class="nav-container">
+    <button class="btn-back" onclick="tampilDaftar()">Kembali</button>
+    <button class="btn-seva" onclick="bukaSeva()">Daftar Seva</button>
+  </div>
+  <h4 class="orange">Lirik & Terjemahan</h4>
+  <div id="det-lirik" class="lirik-box"></div>
+  <h4 class="orange">Arti Filosofi</h4>
+  <div id="det-filo" class="filosofi"></div>
+  <h4 class="orange">Glosarium (A-Z)</h4>
+  <div id="det-glos" style="background:#fffdf5; padding:15px; border-radius:8px; border: 1px solid #ffe0b2; font-size:0.9em; margin-top:5px; margin-bottom: 40px;"></div>
+</div>
+
+
+<div id="view-latihan" style="display:none;">
+
+  <!-- Container Tombol Navigasi -->
+  <div class="nav-fixed">
+    <button class="btn-back" onclick="tampilDaftar()">Kembali</button>
+    <!-- Tombol Log diletakkan di bagian atas (sebelah kiri Setting) -->
+<!-- AREA TOMBOL HEADER -->
+<div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 5px;">
+  
+  <!-- Tombol Log -->
+  <button onclick="bukaRiwayat()" style="border:none; background:#ff8c00; color:white; padding: 8px 15px; border-radius: 20px; cursor:pointer; font-weight:bold; font-size: 13px;">
+    Log
+  </button>
+
+  <!-- Tombol Setting dengan Ikon yang warnanya bisa diatur -->
+  <button onclick="cekPassword()" style="border:none; background:#ff8c00; color:white; padding: 8px; border-radius: 50%; cursor:pointer; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+    <span style="font-size: 1.3rem; filter: brightness(1.2);">⚙️</span>
+  </button>
+
+</div>
+
+
+  </div>
+
+  <!-- PENYANGGA TIPIS (Ini kuncinya agar tidak hancur tapi tetap mepet) -->
+  <div style="height: 55px;"></div>
+
+  <!-- 1. QUOTE ARAHAN HARIAN -->
+    <div id="arahanHarian">
+    <style>
+      #kontainer-mahavakya-bhajan { padding: 25px; border-radius: 30px 5px 30px 5px; border: 2px solid orange; font-family: 'Segoe UI', sans-serif; text-align: center; color: #000; margin: 0px auto 10px auto !important; box-sizing: border-box; position: relative; overflow: hidden; transition: background-color 0.5s ease; }
+      #kontainer-mahavakya-bhajan::before { content: "ॐ"; position: absolute; top: 10px; left: 15px; color: #d35400; font-size: 1.2em; }
+      #judul-mahavakya { font-size: 16px; text-shadow: 1px 0 0px #d35400; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: #d35400; border-bottom: 1px dashed rgba(0, 0, 0, 0.2); display: inline-block; padding-bottom: 5px; }
+      #teks-mahavakya { font-family: 'Georgia', serif; font-style: italic; font-weight: 700; font-size: 1.1em; line-height: 1.5; margin-bottom: 20px; color: #000; display: block; }
+      #sumber-mahavakya { font-weight: 700; font-size: 0.75em; color: #000; background: rgba(255, 255, 255, 0.5); display: inline-block; padding: 5px 15px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+    <div id="kontainer-mahavakya-bhajan">
+      <div id="judul-mahavakya">Arahan Harian</div>
+      <div id="teks-mahavakya"></div>
+      <div id="sumber-mahavakya"></div>
+    </div>
+  </div>
+
+  <!-- 2. COUNTER (DI BAWAH QUOTE) -->
+  <div id="bhj-main-wrapper">
+    <style>
+      #bhj-main-wrapper { width: 100%; margin: 0 auto 10px auto; font-family: 'Inter', sans-serif; }
+      .bhj-compact-container { padding: 10px 15px; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); display: flex; align-items: center; justify-content: space-between; border: 1px solid #ddd; }
+      .bhj-header-title { font-size: 13px; color: #d35400; text-transform: uppercase; font-weight: 800; margin-right: 10px; max-width: 70px; text-align: left; line-height: 1.1; text-shadow: 0.5px 0 0 #d35400, -0.5px 0 0 #d35400, 0 0.5px 0 #d35400, 0 -0.5px 0 #d35400; }
+      .bhj-countdown-grid { display: flex; gap: 8px; flex-grow: 1; justify-content: flex-end; }
+      .bhj-time-slot { text-align: center; min-width: 45px; }
+      .bhj-big-number { font-size: 18px; font-weight: 800; color: #2c3e50; display: block; line-height: 1; margin-bottom: 2px; text-shadow: 0.5px 0 0 #2c3e50, -0.5px 0 0 #2c3e50, 0 0.5px 0 #2c3e50, 0 -0.5px 0 #2c3e50; }
+      .bhj-sharp-label { font-size: 10px; color: #333; text-transform: uppercase; font-weight: 700; text-shadow: 0.3px 0 0 #333; }
+      #bhj-announcement-box { display: none; width: 100%; margin-top: 5px; padding: 8px; background-color: #fff5f5; color: #c62828; border-radius: 8px; font-size: 12px; text-align: center; font-weight: 700; border: 1px solid #ffcdd2; text-shadow: 0.4px 0 0 #c62828; }
+    </style>
+    <div class="bhj-compact-container">
+      <div class="bhj-header-title">Menuju Bhajan</div>
+      <div class="bhj-countdown-grid">
+        <div class="bhj-time-slot"><span class="bhj-big-number" id="bhj-days">0</span><span class="bhj-sharp-label">Hari</span></div>
+        <div class="bhj-time-slot"><span class="bhj-big-number" id="bhj-hours">0</span><span class="bhj-sharp-label">Jam</span></div>
+        <div class="bhj-time-slot"><span class="bhj-big-number" id="bhj-mins">0</span><span class="bhj-sharp-label">Menit</span></div>
+        <div class="bhj-time-slot"><span class="bhj-big-number" id="bhj-secs">0</span><span class="bhj-sharp-label">Detik</span></div>
+      </div>
+    </div>
+    <div id="bhj-announcement-box">⚠️ Bhajan segera dimulai! Mohon HP silent.</div>
+  </div>
+
+  <!-- 3. DAFTAR LATIHAN -->
+  <div id="list-bhajan-latihan"></div>
+</div>
+
+
+
+
+<!-- FIX TOTAL: Modal Mengambang agar bisa ditarik sampai mentok ke atas -->
+<div id="sevaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; overflow-y: scroll; -webkit-overflow-scrolling: touch;">
+  
+  <div style="width: 90%; max-width: 380px; margin: 50px auto 400px auto; background: white; padding: 20px; border-radius: 15px; box-sizing: border-box; box-shadow: 0 5px 20px rgba(0,0,0,0.3);">
+    
+    <h3 class="orange" style="margin-top:0; text-align:center;">Pilih Slot Seva</h3>
+    
+    <!-- Grid nomor slot -->
+    <div id="grid-nomor" class="grid-no"></div>
+    
+    <!-- Form Input Pendaftaran -->
+    <div id="form-input-seva" style="display:none; text-align: left;">
+      <p style="text-align:center; margin-bottom: 20px;">Slot dipilih: <b id="no-terpilih" class="orange"></b></p>
+      
+      <label style="font-size: 12px; font-weight: bold; color: #555;">ID Member:</label>
+      <input type="text" id="id-member" class="box" placeholder="Ketik ID Anda" onkeyup="cariMember()" 
+             style="width:100%; padding:15px; border:1px solid #ccc; border-radius:10px; box-sizing:border-box; text-transform: uppercase; font-size:16px; margin-bottom: 5px;">
+      
+      <small id="info-id" style="display:block; margin-bottom:15px; font-size:11px;"></small>
+      
+      <label style="font-size: 12px; font-weight: bold; color: #555;">Nama Penyanyi:</label>
+      <input type="text" id="nama-seva" class="box" readonly 
+             style="width:100%; padding:15px; border:1px solid #ccc; border-radius:10px; background:#f0f0f0; color:#444; box-sizing:border-box; margin-bottom:20px; font-size:16px;">
+      
+      <button id="btn-submit-seva" onclick="submitSeva()" 
+              style="width:100%; display:none; background:#2e7d32; color:white; padding:18px; border-radius:30px; font-weight:bold; border:none; cursor:pointer; font-size:16px; box-shadow: 0 4px 10px rgba(46,125,50,0.3);">
+        🚀 SIMPAN PENDAFTARAN
+      </button>
+    </div>
+    
+    <button onclick="tutupSeva()" style="margin-top:25px; border:none; background:none; color:#d32f2f; cursor:pointer; width:100%; font-weight:bold; padding:10px; font-size:14px;">BATAL / TUTUP</button>
+    
+  </div>
+</div>
+
+
+<div id="view-logbhajan">
+  <div class="card-log">
+    <div class="header-log">
+      <button class="btn-back-log" onclick="tutupRiwayat()">KEMBALI</button>
+      <span id="txtF" style="font-weight: bold; color: #d35400;">MENGHUBUNGKAN...</span>
+      <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+        <button id="bL" onclick="navL(1)" style="flex:1; background:#ff8c00; color:white; border:none; padding:8px; border-radius:5px;" disabled>← LAMA</button>
+        <button id="bB" onclick="navL(-1)" style="flex:1; background:#ff8c00; color:white; border:none; padding:8px; border-radius:5px;" disabled>BARU →</button>
+      </div>
+    </div>
+    <div id="loadingL" style="text-align:center; padding:50px; color:#ff8c00; font-weight:bold;">MEMUAT ARSIP...</div>
+    <table id="tblL" class="table-log" style="display:none">
+      <thead><tr><th width="15%">SLOT</th><th width="35%">NAMA</th><th width="35%">JUDUL</th><th width="15%">AKSI</th></tr></thead>
+      <tbody id="contL"></tbody>
+    </table>
+  </div>
+</div>
+
+
+
+<div id="view-setting" style="display:none; padding: 15px; box-sizing: border-box;">
+  <!-- Penyangga khusus agar halaman Setting naik (45px) -->
+  <div class="jarak-atas" style="margin-top: 0px !important; height: 1px;"></div>
+  
+  <h2 class="orange" style="margin-top: 0 !important; margin-bottom: 20px;">⚙️ Setting Latihan</h2>
+  
+  <div style="background: white; padding: 20px; border-radius: 12px; border-left: 5px solid #d35400; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box;">
+    
+    <!-- Input Hari & Jam -->
+    <div style="margin-bottom: 15px;">
+      <label style="font-weight:bold; display:block; margin-bottom:8px; color: #555;">Hari Bhajan (0=Min, 4=Kamis):</label>
+      <input type="number" id="set-hari" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <label style="font-weight:bold; display:block; margin-bottom:8px; color: #555;">Jam Bhajan (Contoh: 19:00):</label>
+      <input type="text" id="set-jam" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
+    </div>
+
+    <div style="margin: 20px 0; border-top: 1px solid #eee; padding-top: 15px;">
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-weight:bold; color: #e65100;">
+        <input type="checkbox" id="set-auto" style="width:22px; height:22px; margin: 0;"> Auto Tambah Quota (Slot)
+      </label>
+    </div>
+
+    <button onclick="prosesSimpanSetting()" style="width:100%; background: #2e7d32; color: white; border: none; padding: 15px; border-radius: 25px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">💾 SIMPAN SETTING</button>
+    <button onclick="tampilLatihan()" style="width:100%; background: #757575; color: white; border: none; padding: 12px; border-radius: 25px; font-weight: bold; cursor: pointer;">BATAL</button>
+
+    <!-- KELOLA PENDAFTAR -->
+    <div style="margin-top: 30px; border-top: 2px solid #ff9800; padding-top: 15px;">
+      <h3 class="orange" style="font-size:16px; margin-bottom:10px;">✏️ Kelola Pendaftar Seva</h3>
+      
+      <div style="display:flex; gap:5px; margin-bottom:10px;">
+        <input type="number" id="input-cari-slot" placeholder="No. Slot" style="width:70px; padding:10px; border:1px solid #ccc; border-radius:8px;">
+        <button onclick="cariSlotAdmin()" style="flex:1; background:#f39c12; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Cek Slot</button>
+      </div>
+
+      <div id="box-hasil-cari" style="display:none; background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #eee; font-size:13px;">
+        <p id="detail-slot-admin" style="margin-bottom:12px; line-height:1.5; color:#333;"></p>
+        <div style="display:flex; gap:8px;">
+          <button onclick="gantiIdAdmin()" style="flex:1; background:#0288d1; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">Ganti ID</button>
+          <button onclick="hapusSlotAdmin()" style="flex:1; background:#d32f2f; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">Hapus</button>
+        </div>
+      </div>
+
+      <!-- TOMBOL BACKUP & RESET MANUAL (MERAH) -->
+      <button onclick="jalankanHapusManual()" style="width:100%; background: #c62828; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📂 Hapus data manual</button>
+    </div>
+
+    <!-- DATABASE MEMBER -->
+    <div style="margin-top: 30px; border-top: 2px solid #2ecc71; padding-top: 15px;">
+      <h3 style="color:#27ae60; font-size:16px; margin-bottom:10px;">👥 Database Member (ID & Nama)</h3>
+      <div style="background:#f0f9f4; padding:10px; border-radius:8px; margin-bottom:10px;">
+        <input type="text" id="db-id" placeholder="ID Member" style="width:100%; padding:8px; margin-bottom:5px; border:1px solid #ccc; border-radius:5px;">
+        <input type="text" id="db-nama" placeholder="Nama Member" style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
+        <button onclick="prosesSimpanMember()" style="width:100%; background:#27ae60; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">➕ SIMPAN / UPDATE MEMBER</button>
+      </div>
+      <button onclick="muatDaftarMember()" style="width:100%; background:#bdc3c7; color:#333; border:none; padding:5px; border-radius:5px; cursor:pointer; font-size:11px; margin-bottom:10px;">🔄 Refresh Daftar Member</button>
+      <div id="list-database-member" style="max-height:200px; overflow-y:auto; font-size:12px; background:#fff; border:1px solid #eee; padding:5px; border-radius:5px;">
+        Memuat daftar member...
+      </div>
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+
+<!-- FOOTER TARUH DI SINI (DI LUAR SEMUA VIEW) -->
+<div id="footer-bersama"> 
+    <!-- Padding bawah dikurangi dari 50px menjadi 10px -->
+    <div id="footer" style="text-align: center; padding: 10px 15px 10px; font-family: 'Times New Roman', Times, serif; max-width: 400px; margin: 0 auto;"> 
+        <div style="margin-bottom: 20px; font-size: 2.5rem; line-height: 1;"> 🪷 </div> 
+        <div style="font-size: 1rem; font-weight: 500; color: #3e2723; margin-bottom: 20px; letter-spacing: 3px; text-transform: uppercase; line-height: 1.4;"> 
+            Samastāḥ Lokāḥ<br> Sukhino Bhavantu 
+        </div> 
+        <div style="width: 30px; height: 1px; background-color: #D4AF37; margin: 0 auto 20px;"></div> 
+        <div style="font-family: 'Verdana', sans-serif; font-size: 0.65rem; color: #757575; text-transform: uppercase; letter-spacing: 4px; line-height: 2.2;"> 
+            Love All, Serve All<br> <b style="color: #D4AF37;">Help Ever, Hurt Never</b> 
+        </div> 
+    </div> 
+
+    <!-- Padding atas-bawah dikurangi menjadi 5px saja -->
+    <div id="gnp-safe-footer-2026" style="text-align: center; padding: 5px 15px 30px;"> 
+        <div style="font-family: sans-serif; color: #888888; font-size: 11px; letter-spacing: 0.5px;"> 
+            <p style="margin: 0;"><b>&copy; 2026 Ruang Sadhana by GNP. All Rights Reserved.</b></p> 
+        </div> 
+    </div> 
+</div>
+
+
+
+
+
+
+
+
+
+
+<script>
+var mapKat = {
+  // "NamaTab": ["Nama Panjang Dropdown", "Singkatan Badge"]
+  "ganesha": ["Ganesha", "GNSH"],
+  "guru": ["Guru", "GURU"],
+  "shiva": ["Shiva", "SHIV"],
+  "devi": ["Devi", "DEVI"],
+  "ramaKrishna": ["Rama Krishna", "RMKR"],
+  "sarvaDevata": ["Sarva Devata", "SDEV"],
+  "sarvaDharma": ["Sarva Dharma", "SDHR"],
+  "sai": ["Sai", "SAI"],
+  "bahasaBali": ["Bahasa Bali", "BALI"],
+  "bahasaInggris": ["Bahasa Inggris", "INGG"],
+  "bahasaIndonesia": ["Bahasa Indonesia", "IND"]
+  // Tambahkan yang lainnya di sini
+};
+
+
+
+function loading(show) {
+  const el = document.getElementById('loading-global');
+  el.style.display = show ? 'flex' : 'none';
+}
+
+
+
+
+function muatDaftarMember() {
+  const el = document.getElementById('list-database-member');
+  el.innerHTML = "<small>Memuat database member...</small>";
+  
+  google.script.run
+    .withSuccessHandler(function(list) {
+      try {
+        var h = "";
+        if (!list || list.length === 0) {
+          h = "<div style='padding:10px; color:#999;'>Database kosong.</div>";
+        } else {
+          list.forEach(function(m) {
+            h += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;">
+                    <span><b>${m.id}</b> - ${m.nama}</span>
+                    <div>
+                      <button onclick="setInputMember('${m.id}', '${m.nama}')" style="background:none; border:none; color:blue; cursor:pointer;">📝</button>
+                      <button onclick="prosesHapusMember('${m.id}')" style="background:none; border:none; color:red; cursor:pointer;">🗑️</button>
+                    </div>
+                  </div>`;
+          });
+        }
+        el.innerHTML = h;
+      } catch (err) {
+        el.innerHTML = "Error tampilan member.";
+        console.log(err);
+      }
+    })
+    .withFailureHandler(function() {
+      el.innerHTML = "Gagal mengambil database member.";
+    })
+    .getSemuaMember();
+}
+
+
+
+function setInputMember(id, nama) {
+  document.getElementById('db-id').value = id;
+  document.getElementById('db-nama').value = nama;
+}
+
+function prosesSimpanMember() {
+  var id = document.getElementById('db-id').value;
+  var nama = document.getElementById('db-nama').value;
+  if(!id || !nama) return alert("ID dan Nama wajib diisi!");
+  loading(true);
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false);
+    alert(res);
+    document.getElementById('db-id').value = "";
+    document.getElementById('db-nama').value = "";
+    muatDaftarMember();
+  }).simpanMember(id, nama);
+}
+
+function prosesHapusMember(id) {
+  if(!confirm("Hapus " + id + " dari database?")) return;
+  loading(true);
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false);
+    alert(res);
+    muatDaftarMember();
+  }).hapusMember(id);
+}
+
+
+
+
+
+var slotTerpilihAdmin = "";
+
+function cariSlotAdmin() {
+  var no = document.getElementById('input-cari-slot').value;
+  if(!no) return;
+  slotTerpilihAdmin = no;
+  loading(true);
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false);
+    if(!res) {
+      alert("Slot " + no + " masih kosong.");
+      document.getElementById('box-hasil-cari').style.display = "none";
+      return;
+    }
+    document.getElementById('detail-slot-admin').innerHTML = "<b>Slot " + no + "</b><br>👤 " + res.nama + "<br>🎵 " + res.judul;
+    document.getElementById('box-hasil-cari').style.display = "block";
+  }).getSatuSlot(no);
+}
+
+function hapusSlotAdmin() {
+  if(!confirm("Hapus Slot " + slotTerpilihAdmin + "?")) return;
+  loading(true);
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false);
+    alert(res);
+    document.getElementById('box-hasil-cari').style.display = "none";
+    bukaHalamanLatihan(); // Segarkan daftar depan
+  }).hapusSlotSeva(slotTerpilihAdmin);
+}
+
+function gantiIdAdmin() {
+  var idBaru = prompt("Masukkan ID Member baru untuk Slot " + slotTerpilihAdmin + ":");
+  if(!idBaru) return;
+  loading(true);
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false);
+    alert(res);
+    cariSlotAdmin(); // Segarkan tampilan di kotak setting
+    bukaHalamanLatihan(); // Segarkan daftar depan
+  }).updateIdSeva(slotTerpilihAdmin, idBaru);
+}
+
+
+
+
+
+function cariMember() {
+  var inputId = document.getElementById('id-member').value.toLowerCase().trim();
+  var namaEl = document.getElementById('nama-seva');
+  var btnEl = document.getElementById('btn-submit-seva');
+  var infoEl = document.getElementById('info-id');
+
+  // 1. Cek Minimal Karakter (Contoh: 6 Karakter)
+  if (inputId.length < 6) {
+    namaEl.value = "";
+    btnEl.style.display = "none";
+    infoEl.innerText = "Ketik minimal 6 karakter...";
+    infoEl.style.color = "#888";
+    return;
+  }
+
+  // 2. Cocokkan dengan Database Member (window.dbMembers)
+  if (window.dbMembers && window.dbMembers[inputId]) {
+    namaEl.value = window.dbMembers[inputId]; // Munculkan Nama Otomatis
+    btnEl.style.display = "block";           // Munculkan Tombol Simpan
+    infoEl.innerText = "✅ ID Terverifikasi";
+    infoEl.style.color = "green";
+  } else {
+    namaEl.value = "";
+    btnEl.style.display = "none";           // Sembunyikan Tombol jika salah
+    infoEl.innerText = "❌ ID tidak terdaftar";
+    infoEl.style.color = "red";
+  }
+}
+
+
+
+
+var db = [];
+var currentLagu = {};
+var currentId = "";
+var slotNo = "";
+var bhj_interval;
+
+function init() {
+  loading(true); 
+
+  google.script.run.withSuccessHandler(function(allSongs) {
+    db = allSongs; 
+    
+    var html = "";
+    var kats = [];
+    var sel = document.getElementById('selKat');
+
+    // 1. Kumpulkan Kategori DULU (agar urut sesuai Tab Sheet)
+    db.forEach(function(item) {
+      if(kats.indexOf(item.kategori) === -1) kats.push(item.kategori);
+    });
+
+    // 2. Buat salinan data untuk diurutkan A-Z Global
+    var dbSorted = [...db].sort((a, b) => a.judul.toString().localeCompare(b.judul.toString()));
+
+    // 3. Bangun daftar lagu (Badge Pakai Singkatan)
+    dbSorted.forEach(function(item) {
+      // Ambil singkatan dari index ke-1 mapKat
+      var labelBadge = (mapKat[item.kategori] ? mapKat[item.kategori][1] : item.kategori);
+      
+      html += '<div class="card" onclick="bukaLagu(\''+item.id+'\')" data-kat="'+item.kategori+'">' +
+              '<b class="judul-teks">' + item.judul + '</b> ' +
+              '<span class="kat-badge">' + labelBadge + '</span></div>';
+    });
+
+    document.getElementById('list-container').innerHTML = html;
+    document.getElementById('hitung-lagu').innerText = db.length + " ♬";
+
+    // 4. Bangun Dropdown Kategori (Nama Panjang + Singkatan)
+    if(sel) {
+      sel.innerHTML = '<option value="SEMUA">-- Semua Kategori --</option>';
+      kats.forEach(function(k) {
+        var opt = document.createElement('option');
+        opt.value = k;
+        // Ambil Nama Panjang (index 0) dan Singkatan (index 1)
+        var namaTampil = mapKat[k] ? mapKat[k][0] + " (" + mapKat[k][1] + ")" : k;
+        opt.innerHTML = namaTampil.toUpperCase();
+        sel.appendChild(opt);
+      });
+    }
+
+    loading(false);
+  }).getSemuaLagu(); 
+}
+
+
+
+
+
+function filterLagu() {
+  var inputEl = document.getElementById('pencarian');
+  var katEl = document.getElementById('selKat');
+  var labelHitung = document.getElementById('hitung-lagu');
+  var listContainer = document.getElementById('list-container');
+  
+  if (!inputEl || !labelHitung || !listContainer) return;
+
+  var val = inputEl.value;
+  var input = (typeof bersih === 'function') ? bersih(val) : val.toLowerCase();
+  var kat = katEl ? katEl.value : "SEMUA";
+  
+  var hasilSaring = db.filter(function(item) {
+    var judulBersih = (typeof bersih === 'function') ? bersih(item.judul) : item.judul.toLowerCase();
+    var cocokKat = (kat === "SEMUA" || item.kategori === kat);
+    var cocokCari = (input === "" || judulBersih.startsWith(input));
+    return cocokKat && cocokCari;
+  });
+
+  if (kat === "SEMUA") {
+    hasilSaring.sort((a, b) => a.judul.toString().localeCompare(b.judul.toString()));
+  }
+
+  var html = "";
+  hasilSaring.forEach(function(item) {
+    // Ambil singkatan dari index ke-1 mapKat
+    var labelBadge = (mapKat[item.kategori] ? mapKat[item.kategori][1] : item.kategori);
+    
+    html += '<div class="card" onclick="bukaLagu(\''+item.id+'\')" data-kat="'+item.kategori+'">' +
+            '<b class="judul-teks">' + item.judul + '</b> ' +
+            '<span class="kat-badge">' + labelBadge + '</span></div>';
+  });
+
+  listContainer.innerHTML = html;
+  labelHitung.innerText = hasilSaring.length + " ♬";
+  window.scrollTo(0, 0);
+}
+
+
+
+
+// FUNGSI PEMBERSIH PALING MANJUR
+function bersih(t) { 
+  if (!t) return "";
+  return t.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Hapus aksen standar
+    .replace(/ṣ/g, "s").replace(/ś/g, "s")
+    .replace(/ṇ/g, "n").replace(/ñ/g, "n")
+    .replace(/ḍ/g, "d").replace(/ṭ/g, "t")
+    .replace(/ḷ/g, "l").replace(/ṁ/g, "m")
+    .replace(/[^a-z0-9\s]/g, ""); // Buang simbol aneh lainnya
+}
+
+
+
+
+function bukaLagu(id, sumber) {
+  loading(true);
+
+  document.getElementById('view-daftar').style.display = "none";
+  document.getElementById('view-latihan').style.display = "none";
+  document.getElementById('view-detail').style.display = "block";
+
+  document.getElementById('det-judul').innerText = "Sedang Memuat...";
+  document.getElementById('det-player').innerHTML = ""; 
+  document.getElementById('det-lirik').innerHTML = '<div class="loading-text">Menyiapkan lirik...</div>'; 
+
+  window.scrollTo(0, 0);
+
+  var btnBack = document.querySelector('#view-detail .btn-back');
+  var btnSeva = document.querySelector('#view-detail .btn-seva');
+
+  if (sumber === 'latihan') {
+    btnBack.onclick = function() { tampilLatihan(); }; 
+    btnSeva.style.display = "none"; 
+  } else {
+    btnBack.onclick = function() { tampilDaftar(); };
+    btnSeva.style.display = "block"; 
+  }
+
+  google.script.run.withSuccessHandler(function(lagu) {
+    loading(false);
+    if (!lagu) return;
+    
+    // --- INI KUNCI AGAR JUDUL TIDAK KOSONG ---
+    window.currentId = id; 
+    window.currentLagu = lagu; 
+    // ----------------------------------------
+
+    document.getElementById('det-judul').innerText = lagu.judul;
+    
+    var p = "ht"+"tps://"+"dri"+"ve.goo"+"gle.com"+"/fi"+"le/d/"+ lagu.mp3 +"/pre"+"view";
+    document.getElementById('det-player').innerHTML = '<iframe src="'+p+'" class="audio-box"></iframe>';
+    
+    var ln = lagu.lirik.split('\n');
+    var lHtml = "";
+    for(var i=0; i<ln.length; i++) {
+      lHtml += '<div style="'+ (i%2==0 ? 'font-weight:bold;color:#bf360c;' : 'font-style:italic;color:#666;margin-bottom:10px;') +'">'+ln[i]+'</div>';
+    }
+    document.getElementById('det-lirik').innerHTML = lHtml;
+    document.getElementById('det-filo').innerText = lagu.filo || "-";
+    
+    var glosHtml = "";
+    if (lagu.glos) {
+      var items = lagu.glos.toString().split(/\.\s/);
+      items.sort((a, b) => a.trim().localeCompare(b.trim()));
+      items.forEach(function(b) {
+        if (b.indexOf(':') !== -1) {
+          var pos = b.indexOf(':');
+          glosHtml += '<div style="border-bottom:1px solid #eee; padding:5px 0;"><b style="color:#e65100;">'+b.substring(0, pos).trim()+'</b>: '+b.substring(pos+1).trim()+'.</div>';
+        }
+      });
+    }
+    document.getElementById('det-glos').innerHTML = glosHtml || "-";
+    window.scrollTo(0,0);
+  }).getDetailLagu(id);
+}
+
+
+
+
+
+
+
+
+function bukaHalamanLatihan() {
+  loading(true);
+  document.getElementById('view-daftar').style.display = "none";
+  document.getElementById('view-detail').style.display = "none";
+  document.getElementById('view-latihan').style.display = "block";
+
+  google.script.run.withSuccessHandler(function(t) {
+    loading(false);
+    if (!t) return;
+
+    // 1. Simpan Data Global & Quote
+    window.dbMembers = t.members || {};
+    window.daftarQuotesFromSheet = t.quotes || [];
+    window.warnaFromSheet = t.warna || [];
+    if (typeof updateQuote === "function") updateQuote();
+
+    // 2. Logika Timer Bhajan
+    if (bhj_interval) clearInterval(bhj_interval);
+    function updateTimer() {
+      try {
+        const now = new Date();
+        let targetDay = parseInt(t.hari) || 0;
+        let jamMenit = (t.waktu || "19:00").split(':');
+        let targetH = parseInt(jamMenit[0]) || 0;
+        let targetM = parseInt(jamMenit[1]) || 0;
+        
+        let target = new Date(now.getTime());
+        let dayDiff = (targetDay + 7 - now.getDay()) % 7;
+        
+        // Jika hari ini adalah harinya dan jam sudah lewat, geser ke minggu depan
+        if (dayDiff === 0 && (now.getHours() * 60 + now.getMinutes() >= targetH * 60 + targetM)) {
+          dayDiff = 7;
+        }
+        
+        target.setDate(now.getDate() + dayDiff);
+        target.setHours(targetH, targetM, 0, 0);
+        
+        const dist = target.getTime() - now.getTime();
+        if (dist > 0) {
+          document.getElementById("bhj-days").innerText = Math.floor(dist / 86400000);
+          document.getElementById("bhj-hours").innerText = Math.floor((dist % 86400000) / 3600000);
+          document.getElementById("bhj-mins").innerText = Math.floor((dist % 3600000) / 60000);
+          document.getElementById("bhj-secs").innerText = Math.floor((dist % 60000) / 1000);
+        }
+      } catch(e) {
+        console.log("Timer Error: " + e.message);
+      }
+    }
+    updateTimer();
+    bhj_interval = setInterval(updateTimer, 1000);
+
+    // 3. Render Daftar Slot Latihan
+    let pendaftar = {};
+    let lastSlot = 0;
+    
+    if (t.daftarLatihan && t.daftarLatihan.length > 0) {
+      t.daftarLatihan.forEach(r => {
+        let n = parseInt(r[0]);
+        if (!isNaN(n)) {
+          let namaP = (r[2] || "").toString().trim();
+          // Filter nama tidak valid
+          if (namaP === "" || namaP === "0" || namaP === "ID Tidak Terdaftar" || namaP === "#N/A") {
+            namaP = "";
+          }
+          pendaftar[n] = { 
+            nama: namaP, 
+            judul: (r[3] || "-"), 
+            id: (r[4] || "") 
+          };
+          if (n > lastSlot) lastSlot = n;
+        }
+      });
+    }
+
+    let max = Math.max(9, lastSlot);
+    let html = '';
+    for (let i = 1; i <= max; i++) {
+      let d = pendaftar[i];
+      let isBlank = !d || !d.nama;
+      
+      html += '<div class="singer-item" style="' + (isBlank ? 'opacity: 0.6; border-left: 4px solid #ddd;' : 'border-left: 4px solid #f39c12;') + '">' +
+              '<div class="singer-row">' +
+                '<div class="singer-numb ' + (!isBlank ? 'numb-circle' : '') + '">' + i + '</div>' +
+                '<div class="singer-info">' +
+                  '<span class="singer-name">' + (isBlank ? '<i>Open Slot</i>' : '👤 ' + d.nama) + '</span>' +
+                  '<span class="song-title-row">' +
+                    '<span>' + (isBlank ? '✍' : '🎵') + '</span>' +
+                    '<span>' + (isBlank ? "Silahkan pilih lagu & mendaftar" : d.judul) + '</span>' +
+                  '</span>' +
+                  (isBlank ? 
+                    '<div class="btn-empty">KOSONG</div>' : 
+                    '<button onclick="bukaLagu(\'' + d.id + '\', \'latihan\')" class="btn-song-latih">MULAI LATIHAN</button>'
+                  ) +
+                '</div>' +
+              '</div>' +
+            '</div>';
+    }
+    document.getElementById('list-bhajan-latihan').innerHTML = html;
+  }).getDataLengkapSeva();
+}
+
+
+
+
+
+
+
+function updateQuote() {
+  const dataMahavakya = window.daftarQuotesFromSheet || [];
+  // Ambil warna dari sheet, kalau kosong pakai default putih
+  const warnaSheet = window.warnaFromSheet || ["#ffffff"]; 
+  
+  if (dataMahavakya.length === 0) return;
+
+  const index = Math.floor((new Date().getTime() + 28800000) / 86400000) % dataMahavakya.length;
+  const data = dataMahavakya[index];
+  // Ambil warna berdasarkan index yang sama dengan quote
+  const warna = warnaSheet[index % warnaSheet.length];
+  
+  document.getElementById('teks-mahavakya').innerText = `“${data.text}”`;
+  document.getElementById('sumber-mahavakya').innerText = data.source;
+  document.getElementById('kontainer-mahavakya-bhajan').style.backgroundColor = warna;
+}
+
+
+function bukaSeva() {
+  loading(true);
+  var idCek = window.currentId;
+  google.script.run.withSuccessHandler(function(conf) {
+    loading(false);
+    if (!conf) return;
+    var sudahTerdaftar = conf.daftarLatihan.some(r => r[4] && r[4].toString() === idCek.toString());
+    if (sudahTerdaftar) {
+      alert("⚠ Maaf, lagu ini sudah ada yang ambil.");
+      return;
+    }
+    window.dbMembers = conf.members;
+    document.getElementById('grid-nomor').innerHTML = "Memuat...";
+    document.getElementById('sevaModal').style.display = "block";
+    document.body.classList.add('stop-scroll');
+    
+    let lastFilled = 0;
+    conf.slotTerisi.forEach(num => { if (parseInt(num) > lastFilled) lastFilled = parseInt(num); });
+    let limitModal = Math.max(9, lastFilled);
+    if (conf.autoSlot && conf.slotTerisi.length >= 9) limitModal = lastFilled + 1;
+
+    var h = "";
+    for(var i = 1; i <= limitModal; i++) {
+      var full = conf.slotTerisi.includes(i.toString());
+      h += '<button class="no-btn '+(full?'slot-full':'slot-ada')+'" '+(full?'disabled':'onclick="pilihNo('+i+')"')+'>'+i+'</button>';
+    }
+    document.getElementById('grid-nomor').innerHTML = h;
+  }).getDataLengkapSeva();
+}
+
+
+
+
+
+
+
+function pilihNo(n) { slotNo = n; document.getElementById('no-terpilih').innerText = n; document.getElementById('form-input-seva').style.display = "block"; }
+
+function submitSeva() {
+  // 1. Ambil ID dan Nama yang sudah terisi otomatis
+  var idMember = document.getElementById('id-member').value;
+  var namaMember = document.getElementById('nama-seva').value;
+  
+  // 2. Validasi: Pastikan ID sudah terverifikasi (Nama tidak boleh kosong)
+  if(!idMember || !namaMember) {
+    return alert("Silakan masukkan ID Member yang valid terlebih dahulu!");
+  }
+  
+  loading(true); // Jalankan Spinner Sai Ram
+
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false); 
+    document.body.classList.remove('stop-scroll');
+    alert(res); 
+    tutupSeva(); 
+    bukaHalamanLatihan();
+  }).simpanSeva({
+    nomor: slotNo, 
+    idMember: idMember.toUpperCase().trim(), // Kirim ID (dalam huruf besar)
+    nama: namaMember,   // Kirim Nama (untuk Snapshot Backup)
+    judul: currentLagu.judul, 
+    idLagu: currentId
+  });
+}
+
+
+
+
+
+
+function tampilDaftar() {
+  loading(true);
+  
+  var vDaftar = document.getElementById('view-daftar');
+  vDaftar.style.display = "block";
+  
+  // Ambil elemen header yang berisi Kategori & Search
+  var stickyH = vDaftar.querySelector('.header-sticky');
+  if (stickyH) {
+    stickyH.style.display = "block";   // Munculkan kembali
+    stickyH.style.position = "sticky"; // Pastikan statusnya tetap menempel
+    stickyH.style.top = "0";
+  }
+
+  document.getElementById('view-detail').style.display = "none";
+  document.getElementById('view-latihan').style.display = "none";
+  document.body.classList.remove('stop-scroll');
+  document.body.style.overflow = "auto";
+  window.scrollTo(0,0);
+  
+  setTimeout(function(){ loading(false); }, 300);
+}
+
+
+
+function tutupSeva() {
+  document.getElementById('sevaModal').style.display = "none";
+  document.getElementById('form-input-seva').style.display = "none";
+  document.body.classList.remove('stop-scroll');
+}
+
+function cekPassword() {
+  loading(true);
+  google.script.run.withSuccessHandler(function(conf) {
+    loading(false);
+    if (!conf) return;
+    
+    setTimeout(function() {
+      var pw = prompt("Masukkan Password Admin:");
+      
+      // Menggunakan toString() di kedua sisi agar perbandingan angka/teks selalu sinkron
+      if (pw !== null && pw.toString().trim() === conf.pwAdmin.toString().trim()) {
+        document.getElementById('view-latihan').style.display = "none";
+        document.getElementById('view-setting').style.display = "block";
+        window.scrollTo(0,0);
+        
+        document.getElementById('set-hari').value = conf.hari;
+        document.getElementById('set-jam').value = conf.waktu;
+        document.getElementById('set-auto').checked = conf.autoSlot;
+        
+        muatListEditSeva();
+        muatDaftarMember();
+      } else if (pw !== null) {
+        alert("Password Salah!");
+      }
+    }, 50);
+  }).getDataLengkapSeva(); 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// muatListEditSeva();
+
+function muatListEditSeva() {
+  document.getElementById('list-edit-seva').innerHTML = "Memuat...";
+  google.script.run.withSuccessHandler(function(t) {
+    let h = "";
+    let data = t.daftarLatihan; // Mengambil dari paket data lengkap
+    if (!data || data.length === 0) {
+      h = "Belum ada pendaftar.";
+    } else {
+      data.forEach(r => {
+        h += `<div style="background:#fff; padding:10px; border-radius:10px; margin-bottom:8px; border:1px solid #eee;"> 
+                <b>Slot ${r[0]}</b>: [${r[1]}] ${r[2]} <br><small>🎵 ${r[3]}</small> 
+                <div style="margin-top:8px;"> 
+                  <button onclick="editIdSeva('${r[0]}','${r[1]}')" style="background:#0288d1; color:white; border:none; padding:5px 10px; border-radius:15px; cursor:pointer;">Ganti ID</button> 
+                  <button onclick="hapusSeva('${r[0]}')" style="background:#d32f2f; color:white; border:none; padding:5px 10px; border-radius:15px; margin-left:5px; cursor:pointer;">Hapus</button> 
+                </div> 
+              </div>`;
+      });
+    }
+    document.getElementById('list-edit-seva').innerHTML = h;
+    loading(false);
+  }).getDataLengkapSeva(); 
+}
+
+
+
+
+
+
+
+
+
+function editNamaSeva(slot, namaLama) {
+  let namaBaru = prompt("Ubah Nama untuk Slot " + slot + ":", namaLama);
+  if (!namaBaru) return;
+  loading(true);
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false); alert(res); muatListEditSeva();
+  }).updateNamaSeva(slot, namaBaru);
+}
+
+function hapusSeva(slot) {
+  if (!confirm("Kosongkan slot " + slot + "?")) return;
+  loading(true);
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false); alert(res); muatListEditSeva();
+  }).hapusSlotSeva(slot);
+}
+
+
+function prosesSimpanSetting() {
+  loading(true);
+  var data = { hari: document.getElementById('set-hari').value, waktu: document.getElementById('set-jam').value, autoSlot: document.getElementById('set-auto').checked };
+  google.script.run.withSuccessHandler(function(res) {
+    loading(false);
+    alert(res);
+    tampilLatihan();
+  }).simpanSetting(data);
+}
+
+function tampilLatihan() {
+  loading(true);
+  
+  // Matikan hantu sticky header halaman depan
+  var viewDaftar = document.getElementById('view-daftar');
+  if (viewDaftar) {
+    viewDaftar.style.display = "none";
+    var stickyH = viewDaftar.querySelector('.header-sticky');
+    if (stickyH) stickyH.style.display = "none";
+  }
+
+  document.getElementById('view-setting').style.display = "none";
+  document.getElementById('view-detail').style.display = "none";
+  document.getElementById('view-latihan').style.display = "block";
+  
+  window.scrollTo(0,0);
+  document.body.style.overflow = "auto";
+  
+  // Panggil data latihan (Jalur normal kamu)
+  bukaHalamanLatihan(); 
+
+  setTimeout(function(){ loading(false); }, 500);
+}
+
+function hapusCari() {
+  var inputEl = document.getElementById('pencarian');
+  if (inputEl) {
+    inputEl.value = ""; // Kosongkan input
+    filterLagu();       // Jalankan filter agar list lagu muncul semua lagi
+    inputEl.focus();    // Fokuskan kembali ke kotak pencarian
+  }
+}
+
+
+function jalankanHapusManual() {
+  if (confirm("Apakah Anda yakin ingin BACKUP dan RESET semua data sekarang secara manual?")) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        alert("Berhasil! Data telah di-backup ke folder dan diset ulang.");
+      })
+      .withFailureHandler(function(err) {
+        alert("Gagal: " + err.message);
+      })
+      .hapusDanBackupManual(); // Ini memanggil nama fungsi di gs yang tadi dibuat
+  }
+}
+
+
+
+
+
+/* KODE NAVIGASI LOG AGAR LIRIK & AUDIO JALAN OTOMATIS */
+  // Gunakan variabel global agar tidak hilang saat pindah file
+  var logF = []; 
+  var logI = 0; 
+  var isFromLog = false;
+
+  function bukaRiwayat() {
+    let lat = document.getElementById('view-latihan'); 
+    if(lat) lat.style.display = 'none';
+    document.getElementById('view-logbhajan').style.display = 'block';
+
+    // Cek jika daftar file kosong, maka ambil data awal
+    if (logF.length === 0) {
+      document.getElementById('loadingL').style.display = 'block';
+      google.script.run.withSuccessHandler(function(r) {
+        if (!r.files || r.files.length === 0) {
+          document.getElementById('loadingL').innerText = "ARSIP KOSONG";
+          return;
+        }
+        logF = r.files; // Simpan daftar file secara global
+        renderLog(r.firstFileData);
+      }).getInitialData();
+    }
+  }
+
+
+  // Fungsi penutup riwayat tetap sama
+  function tutupRiwayat() {
+    document.getElementById('view-logbhajan').style.display = 'none';
+    let lat = document.getElementById('view-latihan');
+    if(lat) lat.style.display = 'block';
+  }
+
+  function navL(s) {
+    var nextIdx = logI + s;
+    // Validasi agar tidak error jika sudah di ujung data
+    if (nextIdx < 0 || nextIdx >= logF.length) return;
+    
+    logI = nextIdx;
+    document.getElementById('tblL').style.display = 'none';
+    document.getElementById('loadingL').style.display = 'block';
+    document.getElementById('loadingL').innerText = "MEMUAT DATA " + (s > 0 ? "LAMA..." : "BARU...");
+
+    // Ambil data file berikutnya berdasarkan ID yang tersimpan di logF
+    google.script.run.withSuccessHandler(renderLog).getSheetData(logF[logI].id);
+  }
+
+
+  function renderLog(data) {
+    document.getElementById('loadingL').style.display = 'none';
+    document.getElementById('tblL').style.display = 'table';
+    document.getElementById('txtF').innerText = logF[logI].name;
+    
+    // Update status tombol (Mati jika sudah di ujung)
+    document.getElementById('bL').disabled = (logI >= logF.length - 1);
+    document.getElementById('bB').disabled = (logI <= 0);
+    
+    let h = "";
+    if (!data || data.length === 0) {
+      h = "<tr><td colspan='4' style='text-align:center; padding:20px;'>Data Kosong</td></tr>";
+    } else {
+      data.forEach(r => {
+        h += `<tr> 
+          <td style="text-align:center;"><b>${r.slot}</b></td> 
+          <td>${r.nama}</td> 
+          <td><span class="badge-v">${r.judul}</span></td> 
+          <td><button onclick="bukaLaguLog('${r.idLagu}')" style="color:#ff8c00; font-weight:bold; background:none; border:1px solid; padding:4px 8px; border-radius:5px; cursor:pointer;">BUKA</button></td> 
+        </tr>`;
+      });
+    }
+    document.getElementById('contL').innerHTML = h;
+  }
+
+  // Fungsi yang dipicu saat klik tombol BUKA di Tabel Log
+  function bukaLaguLog(id) {
+    isFromLog = true; // Tandai navigasi datang dari Log
+    
+    // 1. Sembunyikan Log
+    document.getElementById('view-logbhajan').style.display = 'none';
+    
+    // 2. Panggil fungsi asli kamu agar Lirik & Player Otomatis Jalan
+    // Kita beri parameter 'log' agar navigasi kembali bisa diatur
+    if(typeof bukaLagu === "function") {
+      bukaLagu(id, 'log'); 
+      
+      // Override (Timpa) tombol kembali di halaman detail agar balik ke Log
+      setTimeout(function() {
+        var btnBack = document.querySelector('#view-detail .btn-back');
+        if(btnBack) {
+          btnBack.onclick = function() { handleKembaliKeLog(); };
+        }
+      }, 500); // Beri jeda sebentar agar UI detail siap
+    }
+  }
+
+
+
+  // Fungsi navigasi balik ke Log
+  function handleKembaliKeLog() {
+    // Sembunyikan detail lagu
+    document.getElementById('view-detail').style.display = 'none';
+    
+    // Munculkan kembali Log Bhajan (posisi scroll tetap terjaga)
+    document.getElementById('view-logbhajan').style.display = 'block';
+    isFromLog = false;
+  }
+
+
+
+
+
+
+init();
+</script>
+
+</body>
+</html>
